@@ -41,24 +41,21 @@ def main(model_str):
     renderer = SingleScreenRenderer(display)
     splitscreen_renderer = SplitScreenRenderer(display)
     renderer.clear()
-    renderer.addWord("booting...")
-    whisper = Transcriber(model="tiny")
+    renderer.addWord('booting...')
+    whisper = Transcriber(model='tiny')
     llm_speaker = LLMSpeaker(model_str)
     state_machine = StateMachine()
-    main_menu = MainMenu(
-        display,
-        state_machine.get_source_languages(),
-        state_machine.get_target_languages(),
-    )
+    main_menu = MainMenu(display, state_machine.get_source_languages(),
+                         state_machine.get_target_languages())
     buttons = ButtonHandler()
-    serial_output = serial.Serial("/dev/ttyS9", 115200, timeout=1)
+    serial_output = serial.Serial('/dev/ttyS9', 115200, timeout=1)
 
     recorder = Recorder()
     pred_filter = PredictionFilters()
     translator = Translator()
 
     first_llm_invocation = False
-    total_string = ""
+    total_string = ''
 
     # Purge audio buffer while transient occurs.
     audio, vad = recorder.get_audio()
@@ -71,7 +68,7 @@ def main(model_str):
 
     tts_lock = fasteners.InterProcessLock(TTS_LOCKFILE)
 
-    def handle_menu(draw, prompt_word=""):
+    def handle_menu(draw, prompt_word=''):
         if buttons.enter_pressed():
             volume, src_lang, tgt_lang = main_menu.open_menu()
             if draw:
@@ -88,7 +85,7 @@ def main(model_str):
 
     while True:
         if state_machine.get_state() == AIBoxState.CAPTION:
-            handle_menu(draw=False, prompt_word="Ready...")
+            handle_menu(draw=False, prompt_word='Ready...')
             if tts_playing(tts_lock):
                 continue
             wav, vad_chunks = recorder.get_audio()
@@ -109,25 +106,23 @@ def main(model_str):
                     first_difference = i
                     break
             n_updated = len(old_total_string) - first_difference
-            string_to_write = ""
+            string_to_write = ''
             for _ in range(n_updated):
-                string_to_write += "\b"
+                string_to_write += '\b'
             string_to_write += total_string[first_difference:]
-            # TODO: 还未实现
-            # serial_output.write(bytes(string_to_write, "utf-8"))
+            # serial_output.write(bytes(string_to_write, 'utf-8'))
 
             if needs_update:
                 words_to_update = total_string.split()
                 # We will never need to update more than 20 words across the last two lines.
                 renderer.updateNLines(
-                    2, words_to_update[-20 - a_words : len(words_to_update) - a_words]
-                )
+                    2, words_to_update[-20 - a_words:len(words_to_update) -
+                                       a_words])
             if a_words > 0:
                 renderer.addWords(total_string.split()[-a_words:])
 
-            state_change = state_machine.update_state(
-                s, buttons.up_pressed(), buttons.down_pressed()
-            )
+            state_change = state_machine.update_state(s, buttons.up_pressed(),
+                                                      buttons.down_pressed())
             if state_change == AIBoxState.CHATTY:
                 # Switching from caption box to chatty
                 renderer.clear()
@@ -145,22 +140,22 @@ def main(model_str):
         elif state_machine.get_state() == AIBoxState.CHATTY:
             if tts_playing(tts_lock):
                 continue
-            renderer.addWord("Prompt:")
+            renderer.addWord('Prompt:')
             wav = None
             next_button_pressed = False
             prev_button_pressed = False
-            while wav is None and not (next_button_pressed or prev_button_pressed):
+            while wav is None and not (next_button_pressed or
+                                       prev_button_pressed):
                 wav = recorder.record_voice()
-                handle_menu(draw=False, prompt_word="Prompt:")
+                handle_menu(draw=False, prompt_word='Prompt:')
                 next_button_pressed = buttons.up_pressed()
                 prev_button_pressed = buttons.down_pressed()
             s = None
             if wav is not None:
                 s = whisper.run(wav).strip()
                 printc("yellow", s)
-            state_change = state_machine.update_state(
-                s, next_button_pressed, prev_button_pressed
-            )
+            state_change = state_machine.update_state(s, next_button_pressed,
+                                                      prev_button_pressed)
             if state_change == AIBoxState.CAPTION:
                 renderer.clear()
                 renderer.addWord("Ready...")
@@ -169,7 +164,7 @@ def main(model_str):
                 if get_current_volume() != 0:
                     time.sleep(2.0)
                 # Wait for tts.
-                total_string = ""
+                total_string = ''
                 recorder.reset()
             elif state_change == AIBoxState.TRANSLATE:
                 renderer.clear()
@@ -192,7 +187,8 @@ def main(model_str):
             wav = None
             next_button_pressed = False
             prev_button_pressed = False
-            while wav is None and not (next_button_pressed or prev_button_pressed):
+            while wav is None and not (next_button_pressed or
+                                       prev_button_pressed):
                 wav = recorder.record_voice()
                 handle_menu(draw=True)
                 next_button_pressed = buttons.up_pressed()
@@ -203,10 +199,10 @@ def main(model_str):
                 printc("yellow", s)
 
             src_lang, tgt_lang = state_machine.get_translate_languages()
-            src_lang_code, tgt_lang_code = state_machine.get_translate_language_codes()
-            state_change = state_machine.update_state(
-                s, next_button_pressed, prev_button_pressed
+            src_lang_code, tgt_lang_code = state_machine.get_translate_language_codes(
             )
+            state_change = state_machine.update_state(s, next_button_pressed,
+                                                      prev_button_pressed)
             if state_change == AIBoxState.CAPTION:
                 splitscreen_renderer.clear()
                 renderer.addWord("Ready...")
@@ -215,7 +211,7 @@ def main(model_str):
                 if get_current_volume() != 0:
                     time.sleep(2.0)
                 # Wait for tts.
-                total_string = ""
+                total_string = ''
                 recorder.reset()
             elif state_change == AIBoxState.CHATTY:
                 # Switching from caption box to chatty
@@ -232,7 +228,7 @@ def main(model_str):
                 splitscreen_renderer.setLanguages(src_lang, tgt_lang)
                 recorder.reset()
             elif s is not None:
-                if src_lang != "en":
+                if src_lang != 'en':
                     s = whisper.run(wav, src_lang=src_lang_code).strip()
                 splitscreen_renderer.clearTop()
                 splitscreen_renderer.clearBottom()
@@ -242,9 +238,11 @@ def main(model_str):
                 if len(s) > 100:
                     s = s[-100:]
                 s = translator.translate(s, tgt_lang_code)
-                s = s.replace("<unk>", "")
+                s = s.replace('<unk>', '')
+                # add tts for trans mode
                 fontfile = lang_to_font(tgt_lang)
-                print(f"tgt font {fontfile}")
+                print(f'tgt font {fontfile}')
+                llm_speaker.save_logs(s)
                 splitscreen_renderer.addTextBottom(s)
 
 
