@@ -21,9 +21,12 @@ class BaseDisplay:
         pygame.get_init = get_init
         pygame.mouse.set_visible(0)
         display, width, height = self.get_correct_display()
-        self.display = pygame.display.set_mode((height, width),
-                                               pygame.FULLSCREEN,
-                                               display=display)
+        # for debug
+        height = 600
+        width = 800
+        self.display = pygame.display.set_mode(
+            (height, width), pygame.RESIZABLE, display=display
+        )
         # Rotated 90 degrees to the right
         self.surface = pygame.Surface((1280, 720))
         self.clear()
@@ -87,26 +90,27 @@ class TextWindow:
         return font.render(text, True, self.text_color)
 
     def scroll(self):
-        print(f' scrolling cur line {self.current_line} n lines {self.n_lines}')
+        print(f" scrolling cur line {self.current_line} n lines {self.n_lines}")
         if self.current_line >= self.n_lines - 1:
             self.surface.scroll(dy=-self.text_height)
         self.current_line = min(self.current_line + 1, self.n_lines - 1)
         clear_top = self.text_height * (self.n_lines - 1)
-        pygame.draw.rect(self.surface, (0, 0, 0),
-                         (0, clear_top, self.width, self.text_height))
+        pygame.draw.rect(
+            self.surface, (0, 0, 0), (0, clear_top, self.width, self.text_height)
+        )
 
         self.lines.insert(0, [])
-        self.lines = self.lines[:self.n_lines]
+        self.lines = self.lines[: self.n_lines]
         self.x_offset = 0
 
     def addWord(self, word, add_spaces=True, update=True):
         # Catch escape characters for a new line.  LLM may pass others.
-        if word == '\n' or word == '\r' or word == '\r\n':
+        if word == "\n" or word == "\r" or word == "\r\n":
             self.scroll()
-            word = ''
+            word = ""
 
         cur = self.lines[0]
-        word_to_add = word + ' ' if add_spaces else word
+        word_to_add = word + " " if add_spaces else word
         text = self.render_text(word_to_add)
         if self.x_offset + text.get_width() > self.width:
             self.scroll()
@@ -119,11 +123,12 @@ class TextWindow:
         self.display.blit(self.surface, (self.left, self.top))
         if update:
             rect = [
-                self.left + self.x_offset, self.top + y_offset,
+                self.left + self.x_offset,
+                self.top + y_offset,
                 text.get_width(),
-                text.get_height()
+                text.get_height(),
             ]
-            self.display.flip()  #update(rect)
+            self.display.flip()  # update(rect)
         self.x_offset += text.get_width()
 
     def addWords(self, words, add_spaces=True, update=True):
@@ -132,29 +137,37 @@ class TextWindow:
 
     def updateNLines(self, lines_cleared, new_words):
         clear_height = lines_cleared * self.text_height
-        self.current_line = self.current_line - lines_cleared + 1 if self.current_line >= lines_cleared else 0
+        self.current_line = (
+            self.current_line - lines_cleared + 1
+            if self.current_line >= lines_cleared
+            else 0
+        )
         y_offset = self.current_line * self.text_height
-        pygame.draw.rect(self.surface, (0, 0, 0),
-                         (0, y_offset, self.width, clear_height))
+        pygame.draw.rect(
+            self.surface, (0, 0, 0), (0, y_offset, self.width, clear_height)
+        )
         self.x_offset = 0
         lines_to_update = self.lines[:lines_cleared]
-        line_lengths = [len(line) for line in lines_to_update
-                       ]  #[len(line) for line in self.lines[:lines_cleared]]
+        line_lengths = [
+            len(line) for line in lines_to_update
+        ]  # [len(line) for line in self.lines[:lines_cleared]]
         words_to_update = sum(line_lengths)
 
         self.lines = self.lines[lines_cleared:]
         self.lines.insert(0, [])
         for _ in range(lines_cleared - 1):
             self.lines.append([])
-        new_words = new_words if words_to_update >= len(
-            new_words) else new_words[-words_to_update:]
+        new_words = (
+            new_words
+            if words_to_update >= len(new_words)
+            else new_words[-words_to_update:]
+        )
         self.addWords(new_words, update=False)
         rect = [self.left, self.top + y_offset, self.width, clear_height]
         self.display.update(rect)
 
     def clear(self):
-        pygame.draw.rect(self.surface, (0, 0, 0),
-                         (0, 0, self.width, self.height))
+        pygame.draw.rect(self.surface, (0, 0, 0), (0, 0, self.width, self.height))
         self.x_offset = 0
         self.current_line = 0
         self.display.blit(self.surface, (self.left, self.top))
@@ -165,11 +178,13 @@ class SingleScreenRenderer:
 
     def __init__(self, display):
         self.display = display
-        self.window = TextWindow(display,
-                                 rect=(50, 50, 1180, 620),
-                                 text_color=(255, 255, 255),
-                                 fontfile=lang_to_font('english'),
-                                 text_size=70)
+        self.window = TextWindow(
+            display,
+            rect=(50, 50, 1180, 620),
+            text_color=(255, 255, 255),
+            fontfile=lang_to_font("english"),
+            text_size=70,
+        )
 
     def clear(self):
         self.display.clear()
@@ -207,26 +222,34 @@ class SplitScreenRenderer:
     def update(self):
         src_lang = self.src_lang
         tgt_lang = self.tgt_lang
-        self.top_title_window = TextWindow(self.display,
-                                           rect=(50, 10, 1180, 100),
-                                           text_size=70,
-                                           text_color=(220, 100, 100),
-                                           fontfile=lang_to_font('english'))
-        self.bottom_title_window = TextWindow(self.display,
-                                              rect=(50, 360, 1180, 100),
-                                              text_size=70,
-                                              text_color=(220, 100, 100),
-                                              fontfile=lang_to_font('english'))
-        self.top_window = TextWindow(self.display,
-                                     rect=(50, 110, 1180, 250),
-                                     text_size=70,
-                                     text_color=(255, 255, 255),
-                                     fontfile=lang_to_font(src_lang))
-        self.bottom_window = TextWindow(self.display,
-                                        rect=(50, 460, 1180, 250),
-                                        text_size=70,
-                                        text_color=(100, 255, 100),
-                                        fontfile=lang_to_font(tgt_lang))
+        self.top_title_window = TextWindow(
+            self.display,
+            rect=(50, 10, 1180, 100),
+            text_size=70,
+            text_color=(220, 100, 100),
+            fontfile=lang_to_font("english"),
+        )
+        self.bottom_title_window = TextWindow(
+            self.display,
+            rect=(50, 360, 1180, 100),
+            text_size=70,
+            text_color=(220, 100, 100),
+            fontfile=lang_to_font("english"),
+        )
+        self.top_window = TextWindow(
+            self.display,
+            rect=(50, 110, 1180, 250),
+            text_size=70,
+            text_color=(255, 255, 255),
+            fontfile=lang_to_font(src_lang),
+        )
+        self.bottom_window = TextWindow(
+            self.display,
+            rect=(50, 460, 1180, 250),
+            text_size=70,
+            text_color=(100, 255, 100),
+            fontfile=lang_to_font(tgt_lang),
+        )
 
         src_lang = src_lang[0].upper() + src_lang[1:]
         tgt_lang = tgt_lang[0].upper() + tgt_lang[1:]
@@ -234,16 +257,21 @@ class SplitScreenRenderer:
         self.bottom_title_window.addWord(tgt_lang)
 
     def is_cjk(self, character):
-        return any([
-            start <= ord(character) <= end
-            for start, end in [(4352, 4607), (11904, 42191), (
-                43072,
-                43135), (44032,
-                         55215), (63744,
-                                  64255), (65072,
-                                           65103), (65381,
-                                                    65500), (131072, 196607)]
-        ])
+        return any(
+            [
+                start <= ord(character) <= end
+                for start, end in [
+                    (4352, 4607),
+                    (11904, 42191),
+                    (43072, 43135),
+                    (44032, 55215),
+                    (63744, 64255),
+                    (65072, 65103),
+                    (65381, 65500),
+                    (131072, 196607),
+                ]
+            ]
+        )
 
     def addTextTop(self, text):
         is_cjk = self.is_cjk(text[0])
@@ -277,14 +305,14 @@ class MainMenu:
         self.main_menu = pygame_menu.Menu(
             height=620,
             theme=pygame_menu.themes.THEME_BLUE,
-            title='Main Menu',
+            title="Main Menu",
             width=350,
             position=(100, 8, True),
         )
 
-        self.main_menu.add.button('Set Volume', self.set_volume)
-        self.main_menu.add.button('Select Languages', self.select_languages)
-        self.main_menu.add.button('Back', self.back)
+        self.main_menu.add.button("Set Volume", self.set_volume)
+        self.main_menu.add.button("Select Languages", self.select_languages)
+        self.main_menu.add.button("Back", self.back)
 
         self.volume = 50
         self.src_lang = None
@@ -330,11 +358,13 @@ class VolumeMenu:
         self.volume = get_current_volume()
 
     def open_menu(self):
-        menu = pygame_menu.Menu(height=620,
-                                theme=pygame_menu.themes.THEME_BLUE,
-                                title='Volume (%)',
-                                width=350,
-                                position=(100, 8, True))
+        menu = pygame_menu.Menu(
+            height=620,
+            theme=pygame_menu.themes.THEME_BLUE,
+            title="Volume (%)",
+            width=350,
+            position=(100, 8, True),
+        )
 
         for vol in [100, 75, 50, 25, 0]:
             menu.add.button(vol, self.select_volume, vol)
@@ -401,16 +431,18 @@ class LanguageMenu:
         src_lang_menu = pygame_menu.Menu(
             height=620,
             theme=pygame_menu.themes.THEME_BLUE,
-            title='Source Language',
+            title="Source Language",
             width=350,
             position=(100, 8, True),
         )
 
-        tgt_lang_menu = pygame_menu.Menu(height=620,
-                                         theme=pygame_menu.themes.THEME_BLUE,
-                                         title='Target Language',
-                                         width=350,
-                                         position=(100, 8, True))
+        tgt_lang_menu = pygame_menu.Menu(
+            height=620,
+            theme=pygame_menu.themes.THEME_BLUE,
+            title="Target Language",
+            width=350,
+            position=(100, 8, True),
+        )
 
         for lang in self.src_langs:
             src_lang_menu.add.button(lang, self.select_item, lang)
