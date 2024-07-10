@@ -13,7 +13,7 @@ DOWNLOADED_FOLDER="${SCRIPT_DIR}/downloaded"
 echo "SUDO authentication needed after first model download."
 
 cd
-# mkdir -p $DOWNLOADED_FOLDER
+mkdir -p $DOWNLOADED_FOLDER
 # mkdir -p $MODEL_FOLDER
 
 cd $MODEL_FOLDER
@@ -31,7 +31,7 @@ rm *.whl
 cd $MODEL_FOLDER
 
 DEST_FOLDER="nllb-200-distilled-600M/"
-# mkdir -p $DEST_FOLDER
+mkdir -p $DEST_FOLDER
 cd $DEST_FOLDER
 # curl -L -O https://storage.googleapis.com/download.usefulsensors.com/ai_in_a_box/nllb-200-distilled-600M.tar.gz
 tar -xf *.tar.gz
@@ -42,7 +42,7 @@ rm *.tar.gz
 cd $MODEL_FOLDER
 
 DEST_FOLDER="piper_tts_en_US/"
-# mkdir -p $DEST_FOLDER
+mkdir -p $DEST_FOLDER
 cd $DEST_FOLDER
 # curl -L -O https://storage.googleapis.com/download.usefulsensors.com/ai_in_a_box/piper_tts_en_US.tar.gz
 tar -xf *.tar.gz
@@ -53,7 +53,7 @@ rm *.tar.gz
 cd $MODEL_FOLDER
 
 DEST_FOLDER="orca-mini-3b/"
-# mkdir -p $DEST_FOLDER
+mkdir -p $DEST_FOLDER
 cd $DEST_FOLDER
 # curl -L -O https://storage.googleapis.com/download.usefulsensors.com/ai_in_a_box/orca-mini-3b.tar.gz
 tar -xf *.tar.gz
@@ -64,7 +64,7 @@ rm *.tar.gz
 cd $MODEL_FOLDER
 
 DEST_FOLDER="silero_vad/"
-# mkdir -p $DEST_FOLDER
+mkdir -p $DEST_FOLDER
 cd $DEST_FOLDER
 # curl -L -O https://storage.googleapis.com/download.usefulsensors.com/ai_in_a_box/silero_vad.tar.gz
 tar -xf *.tar.gz
