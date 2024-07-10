@@ -113,7 +113,8 @@ def main(model_str):
             for _ in range(n_updated):
                 string_to_write += "\b"
             string_to_write += total_string[first_difference:]
-            serial_output.write(bytes(string_to_write, "utf-8"))
+            # TODO: 还未实现
+            # serial_output.write(bytes(string_to_write, "utf-8"))
 
             if needs_update:
                 words_to_update = total_string.split()

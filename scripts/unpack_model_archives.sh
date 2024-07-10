@@ -13,13 +13,13 @@ DOWNLOADED_FOLDER="${SCRIPT_DIR}/downloaded"
 echo "SUDO authentication needed after first model download."
 
 cd
-mkdir -p $DOWNLOADED_FOLDER
+# mkdir -p $DOWNLOADED_FOLDER
 # mkdir -p $MODEL_FOLDER
 
 cd $MODEL_FOLDER
 
 DEST_FOLDER="useful-transformers_wheel/"
-# mkdir -p $DEST_FOLDER
+mkdir -p $DEST_FOLDER
 cd $DEST_FOLDER
 # curl -L -O https://storage.googleapis.com/download.usefulsensors.com/ai_in_a_box/useful-transformers_wheel.tar.gz
 tar -xf *.tar.gz
