@@ -14,25 +14,25 @@ class StateMachine:
 
     def __init__(self):
         self.state = AIBoxState.CAPTION
-        self.src_lang = 'english'
-        self.tgt_lang = 'spanish'
+        self.src_lang = "chinese"
+        self.tgt_lang = "english"
         self.lang_to_flores200_dict = {
-            'chinese': 'zho_Hans',
-            'dutch': 'nld_Latn',
-            'english': 'eng_Latn',
-            'french': 'fra_Latn',
-            'german': 'deu_Latn',
-            'greek': 'ell_Grek',
-            'italian': 'ita_Latn',
-            'japanese': 'jpn_Jpan',
-            'korean': 'kor_Hang',
-            'norwegian': 'nob_Latn',
-            'portuguese': 'por_Latn',
-            'russian': 'rus_Cyrl',
-            'spanish': 'spa_Latn',
-            'thai': 'tha_Thai',
-            'turkish': 'tur_Latn',
-            'vietnamese': 'vie_Latn'
+            "chinese": "zho_Hans",
+            "dutch": "nld_Latn",
+            "english": "eng_Latn",
+            "french": "fra_Latn",
+            "german": "deu_Latn",
+            "greek": "ell_Grek",
+            "italian": "ita_Latn",
+            "japanese": "jpn_Jpan",
+            "korean": "kor_Hang",
+            "norwegian": "nob_Latn",
+            "portuguese": "por_Latn",
+            "russian": "rus_Cyrl",
+            "spanish": "spa_Latn",
+            "thai": "tha_Thai",
+            "turkish": "tur_Latn",
+            "vietnamese": "vie_Latn",
         }
         self.src_lang_code = self.lang_to_whisper(self.src_lang)
         self.tgt_lang_code = self.lang_to_flores200(self.tgt_lang)
@@ -40,12 +40,18 @@ class StateMachine:
     def lang_to_whisper(self, lang):
         lang = lang.lower()
         lang_codes = {v: k for k, v in LANGUAGES.items()}
-        return lang_codes[lang] if lang in lang_codes.keys(
-        ) and lang in self.lang_to_flores200_dict.keys() else None
+        return (
+            lang_codes[lang]
+            if lang in lang_codes.keys() and lang in self.lang_to_flores200_dict.keys()
+            else None
+        )
 
     def lang_to_flores200(self, lang):
-        return self.lang_to_flores200_dict[
-            lang] if lang in self.lang_to_flores200_dict.keys() else None
+        return (
+            self.lang_to_flores200_dict[lang]
+            if lang in self.lang_to_flores200_dict.keys()
+            else None
+        )
 
     def get_source_languages(self):
         return [k for k in self.lang_to_flores200_dict.keys()]
@@ -63,27 +69,34 @@ class StateMachine:
             return self.state
         if text is None:
             return AIBoxState.NO_CHANGE
-        if self.state in [AIBoxState.CAPTION, AIBoxState.TRANSLATE
-                         ] and 'chatty' in text.lower():
+        if (
+            self.state in [AIBoxState.CAPTION, AIBoxState.TRANSLATE]
+            and "chatty" in text.lower()
+        ):
             self.state = AIBoxState.CHATTY
             return AIBoxState.CHATTY
-        elif self.state in [AIBoxState.CHATTY, AIBoxState.TRANSLATE
-                           ] and 'caption' in text.lower():
+        elif (
+            self.state in [AIBoxState.CHATTY, AIBoxState.TRANSLATE]
+            and "caption" in text.lower()
+        ):
             self.state = AIBoxState.CAPTION
             return AIBoxState.CAPTION
-        elif 'translate' in text.lower():
+        elif "translate" in text.lower():
             # Expect command in format "translate <src lang> to <dst lang>"
-            text = text.translate(str.maketrans('', '', string.punctuation))
+            text = text.translate(str.maketrans("", "", string.punctuation))
             words = text.lower().split()
-            if 'translate' in words and len(
-                    words) > words.index('translate') + 3:
-                src_lang = words[words.index('translate') + 1]
+            if "translate" in words and len(words) > words.index("translate") + 3:
+                src_lang = words[words.index("translate") + 1]
                 src_lang_code = self.lang_to_whisper(src_lang)
-                to = words[words.index('translate') + 2]
-                tgt_lang = words[words.index('translate') + 3]
+                to = words[words.index("translate") + 2]
+                tgt_lang = words[words.index("translate") + 3]
                 tgt_lang_code = self.lang_to_flores200(tgt_lang)
 
-                if src_lang_code is not None and tgt_lang_code is not None and to == 'to':
+                if (
+                    src_lang_code is not None
+                    and tgt_lang_code is not None
+                    and to == "to"
+                ):
                     self.state = AIBoxState.TRANSLATE
                     self.src_lang = src_lang
                     self.src_lang_code = src_lang_code

@@ -5,7 +5,7 @@
 # USB Audio Device support is experimental.
 # Find the first USB devices (if they exist).
 USB_SOURCE_STR=$(sudo pactl list short sources | grep -i -m 1 "alsa_input.usb" | awk '{print $2}')
-USB_SINK_STR=$(sudo pactl list short sinks | grep -i -m 1 "alsa_output.usb" | awk '{print $2}')
+USB_SINK_STR=$(sudo pactl list short sinks | grep -i -m 1 "alsa_output.platform.es8388" | awk '{print $2}')
 
 if [ ! -z "$USB_SOURCE_STR" ]; then
    echo "Found USB source:  $USB_SOURCE_STR"
