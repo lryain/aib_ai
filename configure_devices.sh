@@ -15,10 +15,10 @@ else
 fi
 
 if [ ! -z "$USB_SINK_STR" ]; then
-    echo "Found USB sink:   $USB_SINK_STR"
+    echo "Found platform.es8388 sink:   $USB_SINK_STR"
     pactl set-default-sink $USB_SINK_STR
 else
-    echo "Did not find USB sink"
+    echo "Did not find platform.es8388 sink"
 fi
 
 # Get default source name string and index number.  Set volume for uctronics.
